@@ -17,28 +17,27 @@ jobs:
       - name: Validate on Databricks
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          ARM_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
-          ARM_TENANT_ID: ${{ secrets.DATABRICKS_TENANT_ID }}
+          DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+          DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
         run: |
           databricks bundle validate
           databricks bundle deploy -t dev
           databricks bundle run validate_job
         working-directory: .
-  
-  deploy-prod:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-    steps:
-      - uses: actions/checkout@v4
-      - uses: databricks/setup-cli@main
-      - name: Deploy to Databricks Prod
-        env:
-          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          ARM_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
-          ARM_TENANT_ID: ${{ secrets.DATABRICKS_TENANT_ID }}
-        run: |
-          databricks bundle deploy -t prod
-          databricks bundle run prod_job
-        working-directory: .
+
+  # deploy-prod:
+  #   runs-on: ubuntu-latest
+  #   if: github.event_name == 'push'
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: databricks/setup-cli@main
+  #     - name: Deploy to Databricks Prod
+  #       env:
+  #         DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+  #         DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+  #         DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+  #         DATABRICKS_TENANT_ID: ${{ secrets.DATABRICKS_TENANT_ID }}
+  #       run: |
+  #         databricks bundle deploy -t prod
+  #         databricks bundle run prod_job
+  #       working-directory: .
