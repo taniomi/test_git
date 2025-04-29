@@ -1,103 +1,78 @@
 # Bundle configuration
-bundle: # Required.
-  name: github_cicd # Required.
+bundle:
+  name: github_cicd
   git:
-    origin_url: string
-    branch: string
+    origin_url: https://github.com/taniomi/test_git.git # Replace with your GitHub repo URL
+    branch: main # Branch to sync with
 
-# These are for any custom variables for use throughout the bundle.
+# Variables
 variables:
-  <some-unique-variable-name>:
-    description: string
-    default: string or complex
+  env:
+    description: Deployment environment
+    default: dev
 
-# These are the default workspace settings if not otherwise overridden in
-# the following "targets" top-level mapping.
+# Workspace settings (same for dev and prod)
 workspace:
-  artifact_path: string
-  auth_type: string
-  azure_client_id: string # For Azure Databricks only.
-  azure_environment: string # For Azure Databricks only.
-  azure_tenant_id: string # For Azure Databricks only.
-  azure_use_msi: true | false # For Azure Databricks only.
-  azure_workspace_resource_id: string # For Azure Databricks only.
-  file_path: string
-  host: string
-  profile: string
-  root_path: string
-  state_path: string
+  host: https://adb-1634309569312632.12.azuredatabricks.net # Replace with your workspace URL
+  file_path: /Workspace/Users/milena.tanioka@nuveto.com.br # Workspace path
+  state_path: /Workspace/Users/milena.tanioka@nuveto.com.br/.bundle
+  artifact_path: /Workspace/Users/milena.tanioka@nuveto.com.br/artifacts
 
-# These are the permissions to apply to experiments, jobs, models, and pipelines defined
-# in the "resources" mapping.
+# Permissions
 permissions:
-  - level: <permission-level>
-    group_name: <unique-group-name>
-  - level: <permission-level>
-    user_name: <unique-user-name>
-  - level: <permission-level>
-    service_principal_name: <unique-principal-name>
+  - level: CAN_MANAGE
+    group_name: milena.tanioka@nuveto.com.br # Replace with group name
+  - level: CAN_RUN
+    service_principal_name: ci-cd-github-actions # Replace with service principal
 
-# These are the default artifact settings if not otherwise overridden in
-# the following "targets" top-level mapping.
-artifacts:
-  <some-unique-artifact-identifier>:
-    build: string
-    files:
-      - source: string
-    path: string
-    type: string
-
-# These are any additional configuration files to include.
-include:
-  - '<some-file-or-path-glob-to-include>'
-  - '<another-file-or-path-glob-to-include>'
-
-# This is the identity to use to run the bundle
+# Run as
 run_as:
-  - user_name: <user-name>
-  - service_principal_name: <service-principal-name>
+  service_principal_name: ci-cd-github-actions # Replace with service principal
 
-# These are the default job and pipeline settings if not otherwise overridden in
-# the following "targets" top-level mapping.
+# Resources (single cluster for both environments)
 resources:
   clusters:
-    <some-unique-programmatic-identifier-for-this-cluster>:
-      # See the REST API create request payload reference for clusters.
+    shared_cluster:
+      spark_version: 15.4.x-scala2.12 # Adjust as needed
+      node_type_id: Standard_DS3_v2 # e.g., i3.xlarge for AWS
+      num_workers: 1
   jobs:
-    <some-unique-programmatic-identifier-for-this-job>:
-      # See REST API create request payload reference for jobs.
+    validate_job:
+      name: validate_pr_changes
+      tasks:
+        - task_key: run_notebook
+          existing_cluster_id: ${resources.clusters.shared_cluster.id}
+          notebook_task:
+            notebook_path: /Workspace/Users/milena.tanioka@nuveto.com.br/test_git/src/validation_notebook.ipynb
+    prod_job:
+      name: production_job
+      tasks:
+        - task_key: run_notebook
+          existing_cluster_id: ${resources.clusters.shared_cluster.id}
+          notebook_task:
+            notebook_path: /Workspace/Users/milena.tanioka@nuveto.com.br/test_git/src/production_notebook.py
 
-# These are any additional files or paths to include or exclude.
+# Sync settings
 sync:
   include:
-    - '<some-file-or-path-glob-to-include>'
-    - '<another-file-or-path-glob-to-include>'
+    - "src/*.py"
+    - "src/*.ipynb"
   exclude:
-    - '<some-file-or-path-glob-to-exclude>'
-    - '<another-file-or-path-glob-to-exclude>'
-  paths:
-    - '<some-file-or-path-to-synchronize>'
+    - "*.log"
+    - "*.md"
 
-# These are the targets to use for deployments and workflow runs. One and only one of these
-# targets can be set to "default: true".
+# Targets (dev for PR validation, prod for post-merge)
 targets:
-  <some-unique-programmatic-identifier-for-this-target>:
-    artifacts:
-      # See the preceding "artifacts" syntax.
-    bundle:
-      # See the preceding "bundle" syntax.
-    cluster_id: string
-    default: true | false
+  dev:
+    default: true
     mode: development
-    presets:
-      <preset>: <value>
     resources:
-      # See the preceding "resources" syntax.
-    sync:
-      # See the preceding "sync" syntax.
-    variables:
-      <preceding-unique-variable-name>: <non-default-value>
-    workspace:
-      # See the preceding "workspace" syntax.
-    run_as:
-      # See the preceding "run_as" syntax.
+      jobs:
+        validate_job: # Only run validation job in dev
+          name: validate_pr_changes
+  prod:
+    mode: production
+    resources:
+      jobs:
+        prod_job: # Only run prod job in prod
+          name: production_job

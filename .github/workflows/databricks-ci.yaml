@@ -1,0 +1,42 @@
+name: Databricks CI/CD
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  validate-pr:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      # Check out this repo, so that this workflow can access it.
+      - uses: actions/checkout@v4
+      # Download the Databricks CLI. See https://github.com/databricks/setup-cli
+      - uses: databricks/setup-cli@main
+      - name: Validate on Databricks
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+        run: |
+          databricks bundle validate
+          databricks bundle deploy -t dev
+          databricks bundle run validate_job
+        working-directory: .
+  
+  deploy-prod:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: databricks/setup-cli@main
+      - name: Deploy to Databricks Prod
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+        run: |
+          databricks bundle deploy -t prod
+          databricks bundle run prod_job
+        working-directory: .
