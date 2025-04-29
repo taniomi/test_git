@@ -36,7 +36,7 @@ jobs:
   
   pipeline_update:
     name: 'run pipeline update'
-    run-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
     # Run the "deploy" job first.
     needs: 
