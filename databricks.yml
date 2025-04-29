@@ -2,20 +2,14 @@
 bundle:
   name: github_cicd
   git:
-    origin_url: https://github.com/taniomi/test_git.git # Replace with your GitHub repo URL
-    branch: main # Branch to sync with
+    origin_url: https://github.com/taniomi/test_git.git
+    branch: main
 
 # Variables
 variables:
   env:
     description: Deployment environment
     default: dev
-  azure_client_id:
-    description: Azure service principal client ID
-  azure_client_secret:
-    description: Azure service principal client secret
-  azure_tenant_id:
-    description: Azure tenant ID
 
 # Workspace settings (same for dev and prod)
 workspace:
@@ -24,27 +18,24 @@ workspace:
   state_path: /Workspace/Users/milena.tanioka@nuveto.com.br/.bundle
   artifact_path: /Workspace/Users/milena.tanioka@nuveto.com.br/artifacts
   auth_type: oauth-m2m
-  azure_client_id: ${var.azure_client_id}
-  azure_client_secret: ${var.azure_client_secret}
-  azure_tenant_id: ${var.azure_tenant_id}
 
 # Permissions
 permissions:
   - level: CAN_MANAGE
-    group_name: milena.tanioka@nuveto.com.br # Replace with group name
+    group_name: milena.tanioka@nuveto.com.br
   - level: CAN_RUN
-    service_principal_name: ci-cd-github-actions # Replace with service principal
+    service_principal_name: ci-cd-github-actions
 
 # Run as
 run_as:
-  service_principal_name: ci-cd-github-actions # Replace with service principal
+  service_principal_name: ci-cd-github-actions
 
 # Resources (single cluster for both environments)
 resources:
   clusters:
     shared_cluster:
-      spark_version: 15.4.x-scala2.12 # Adjust as needed
-      node_type_id: Standard_DS3_v2 # e.g., i3.xlarge for AWS
+      spark_version: 15.4.x-scala2.12
+      node_type_id: Standard_DS3_v2
       num_workers: 1
   jobs:
     validate_job:
