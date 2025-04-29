@@ -21,10 +21,10 @@ workspace:
 
 # Permissions
 permissions:
-  - level: CAN_MANAGE
-    group_name: milena.tanioka@nuveto.com.br
-  - level: CAN_RUN
-    service_principal_name: ci-cd-github-actions
+  - group_name: milena.tanioka@nuveto.com.br
+    level: CAN_MANAGE
+  - service_principal_name: ci-cd-github-actions
+    level: CAN_MANAGE
 
 # Run as
 run_as:
