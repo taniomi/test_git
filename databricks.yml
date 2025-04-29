@@ -10,13 +10,23 @@ variables:
   env:
     description: Deployment environment
     default: dev
+  azure_client_id:
+    description: Azure service principal client ID
+  azure_client_secret:
+    description: Azure service principal client secret
+  azure_tenant_id:
+    description: Azure tenant ID
 
 # Workspace settings (same for dev and prod)
 workspace:
-  host: https://adb-1634309569312632.12.azuredatabricks.net # Replace with your workspace URL
-  file_path: /Workspace/Users/milena.tanioka@nuveto.com.br # Workspace path
+  host: https://adb-1634309569312632.12.azuredatabricks.net
+  file_path: /Workspace/Users/milena.tanioka@nuveto.com.br
   state_path: /Workspace/Users/milena.tanioka@nuveto.com.br/.bundle
   artifact_path: /Workspace/Users/milena.tanioka@nuveto.com.br/artifacts
+  auth_type: oauth-m2m
+  azure_client_id: ${var.azure_client_id}
+  azure_client_secret: ${var.azure_client_secret}
+  azure_tenant_id: ${var.azure_tenant_id}
 
 # Permissions
 permissions:
@@ -68,11 +78,11 @@ targets:
     mode: development
     resources:
       jobs:
-        validate_job: # Only run validation job in dev
+        validate_job:
           name: validate_pr_changes
   prod:
     mode: production
     resources:
       jobs:
-        prod_job: # Only run prod job in prod
+        prod_job:
           name: production_job

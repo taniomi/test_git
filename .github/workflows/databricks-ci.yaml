@@ -12,19 +12,14 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
-      # Check out this repo, so that this workflow can access it.
       - uses: actions/checkout@v4
-      # Download the Databricks CLI. See https://github.com/databricks/setup-cli
       - uses: databricks/setup-cli@main
-      - name: Configure Databricks CLI
+      - name: Validate on Databricks
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
-          DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
-          DATABRICKS_TENANT_ID: ${{ secrets.DATABRICKS_TENANT_ID }}
-        run: |
-          databricks configure --host $DATABRICKS_HOST --client-id $DATABRICKS_CLIENT_ID --client-secret $DATABRICKS_CLIENT_SECRET --tenant-id $DATABRICKS_TENANT_ID
-      - name: Validate on Databricks
+          DATABRICKS_VAR_AZURE_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+          DATABRICKS_VAR_AZURE_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+          DATABRICKS_VAR_AZURE_TENANT_ID: ${{ secrets.DATABRICKS_TENANT_ID }}
         run: |
           databricks bundle validate
           databricks bundle deploy -t dev
@@ -37,15 +32,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: databricks/setup-cli@main
-      - name: Configure Databricks CLI
+      - name: Deploy to Databricks Prod
         env:
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
-          DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
-          DATABRICKS_TENANT_ID: ${{ secrets.DATABRICKS_TENANT_ID }}
-        run: |
-          databricks configure --host $DATABRICKS_HOST --client-id $DATABRICKS_CLIENT_ID --client-secret $DATABRICKS_CLIENT_SECRET --tenant-id $DATABRICKS_TENANT_ID
-      - name: Deploy to Databricks Prod
+          DATABRICKS_VAR_AZURE_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+          DATABRICKS_VAR_AZURE_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+          DATABRICKS_VAR_AZURE_TENANT_ID: ${{ secrets.DATABRICKS_TENANT_ID }}
         run: |
           databricks bundle deploy -t prod
           databricks bundle run prod_job
