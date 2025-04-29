@@ -1,0 +1,79 @@
+# Bundle configuration
+bundle:
+  name: github_cicd
+  git:
+    origin_url: https://github.com/taniomi/test_git.git
+    branch: main
+
+# Variables
+variables:
+  env:
+    description: Deployment environment
+    default: dev
+
+# Workspace settings (same for dev and prod)
+workspace:
+  host: https://adb-1634309569312632.12.azuredatabricks.net
+  file_path: /Workspace/Users/milena.tanioka@nuveto.com.br
+  state_path: /Workspace/Users/milena.tanioka@nuveto.com.br/.bundle
+  artifact_path: /Workspace/Users/milena.tanioka@nuveto.com.br/artifacts
+  auth_type: oauth-m2m
+
+# Permissions
+permissions:
+  - group_name: milena.tanioka@nuveto.com.br
+    level: CAN_MANAGE
+  - service_principal_name: ci-cd-github-actions
+    level: CAN_MANAGE
+
+# Run as
+run_as:
+  service_principal_name: ci-cd-github-actions
+
+# Resources (single cluster for both environments)
+resources:
+  clusters:
+    shared_cluster:
+      spark_version: 15.4.x-scala2.12
+      node_type_id: Standard_DS3_v2
+      num_workers: 1
+  jobs:
+    validate_job:
+      name: validate_pr_changes
+      tasks:
+        - task_key: run_notebook
+          existing_cluster_id: ${resources.clusters.shared_cluster.id}
+          notebook_task:
+            notebook_path: /Workspace/Users/milena.tanioka@nuveto.com.br/test_git/src/validation_notebook.ipynb
+    prod_job:
+      name: production_job
+      tasks:
+        - task_key: run_notebook
+          existing_cluster_id: ${resources.clusters.shared_cluster.id}
+          notebook_task:
+            notebook_path: /Workspace/Users/milena.tanioka@nuveto.com.br/test_git/src/production_notebook.py
+
+# Sync settings
+sync:
+  include:
+    - "src/*.py"
+    - "src/*.ipynb"
+  exclude:
+    - "*.log"
+    - "*.md"
+
+# Targets (dev for PR validation, prod for post-merge)
+targets:
+  dev:
+    default: true
+    mode: development
+    resources:
+      jobs:
+        validate_job:
+          name: validate_pr_changes
+  prod:
+    mode: production
+    resources:
+      jobs:
+        prod_job:
+          name: production_job
