@@ -10,8 +10,8 @@ on:
       - opened
       - synchronize
     branches:
-    - main
-  workflow_dispatch: # enable "Run workflow" buutton on the Actions tab
+      - main
+  workflow_dispatch: # enable "Run workflow" button on the Actions tab
 
 jobs:
   deploy:
